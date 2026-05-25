@@ -39,36 +39,37 @@ criar_desfecho <- function(
       # ===================================================
       dados <- dados |>
             dplyr::mutate(
-                  criterio_peso_final = ifelse(
-                        usar_peso_final,
-                        peso_final >= peso_final_min,
+                  criterio_peso_final = if(usar_peso_final){
+                        peso_final >= peso_final_min
+                        } else {
                         TRUE
-                  ),
-                  criterio_pcf = ifelse(
-                        usar_pcf,
-                        pcf >= pcf_min,
+                  },
+                  criterio_pcf = if (usar_pcf) {
+                        pcf_kg >= pcf_min
+                  } else {
+                        
                         TRUE
-                  ),
-                  criterio_rcf = ifelse(
-                        usar_rcf,
-                        rcf_percentual >= rcf_min,
+                  },
+                  criterio_rcf = if(usar_rcf){
+                        rcf_percent >= rcf_min
+                  } else {
                         TRUE
-                  ),
-                  criterio_ecc = ifelse(
-                        usar_ecc_final,
-                        ecc_final >= ecc_final_min,
+                  },
+                  criterio_ecc = if(usar_ecc_final){
+                        ecc_final >= ecc_final_min
+                        } else {
                         TRUE
-                  ),
-                  criterio_acabamento = ifelse(
-                        usar_acabamento,
-                        acabamento >= acabamento_min,
+                  },
+                  criterio_acabamento = if(usar_acabamento){
+                        acabamento >= acabamento_min
+                        } else {
                         TRUE
-                  ),
-                  criterio_conformacao = ifelse(
-                        usar_conformacao,
-                        conformacao >= conformacao_min,
+                  },
+                  criterio_conformacao = if(usar_conformacao){
+                        conformacao >= conformacao_min
+                        } else {
                         TRUE
-                  )
+                        }
             )
       # ===================================================
       # Construção do desfecho final

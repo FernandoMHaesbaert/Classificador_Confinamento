@@ -30,71 +30,49 @@
 
 executar_pipeline_confinamento <- function(
             
-      caminho_base = NULL,
+      # ==========================================
+      # MACHOS
+      # ==========================================
       
-      dados = NULL,
+      peso_final_machos = 35,
       
-      # ===================================================
-      # PARÂMETROS DO DESFECHO
-      # ===================================================
+      pcf_machos = 15,
       
-      peso_final_min_femeas = 30,
+      rcf_machos = 0.45,
       
-      pcf_min_femeas = 14,
+      ecc_machos = 3,
       
-      rcf_min_femeas = 0.45,
+      acabamento_machos = 3,
       
-      ecc_final_min_femeas = 3,
+      conformacao_machos = 3,
       
-      acabamento_min_femeas = 3,
+      # ==========================================
+      # FÊMEAS
+      # ==========================================
       
-      conformacao_min_femeas = 3,
+      peso_final_femeas = 30,
       
-      peso_final_min_machos = 35,
+      pcf_femeas = 14,
       
-      pcf_min_machos = 15,
+      rcf_femeas = 0.45,
       
-      rcf_min_machos = 0.45,
+      ecc_femeas = 3,
       
-      ecc_final_min_machos = 3,
+      acabamento_femeas = 3,
       
-      acabamento_min_machos = 3,
+      conformacao_femeas = 3,
       
-      conformacao_min_machos = 3,
+      # ==========================================
+      # PARÂMETROS DO PIPELINE
+      # ==========================================
       
-      # ===================================================
-      # ELASTIC NET
-      # ===================================================
+      seed = 123,
       
       alpha_elastic = 0.5,
       
-      nfolds_elastic = 5,
-      
-      # ===================================================
-      # STABILITY SELECTION
-      # ===================================================
-      
       n_boot_stability = 500,
       
-      limiar_estabilidade = 0.6,
-      
-      # ===================================================
-      # BOOTSTRAP INFERENCIAL
-      # ===================================================
-      
       n_boot_inferencial = 500,
-      
-      # ===================================================
-      # PREDIÇÃO
-      # ===================================================
-      
-      n_pontos_predicao = 100,
-      
-      # ===================================================
-      # CONTROLE
-      # ===================================================
-      
-      seed = 123,
       
       verbose = TRUE
 ) {
@@ -173,22 +151,22 @@ executar_pipeline_confinamento <- function(
             dados = femeas,
             
             peso_final_min =
-                  peso_final_min_femeas,
+                  peso_final_femeas,
             
             pcf_min =
-                  pcf_min_femeas,
+                  pcf_femeas,
             
             rcf_min =
-                  rcf_min_femeas,
+                  rcf_femeas,
             
             ecc_final_min =
-                  ecc_final_min_femeas,
+                  ecc_femeas,
             
             acabamento_min =
-                  acabamento_min_femeas,
+                  acabamento_femeas,
             
             conformacao_min =
-                  conformacao_min_femeas
+                  conformacao_femeas
       )
       
       machos_desfecho <- criar_desfecho(
@@ -196,22 +174,22 @@ executar_pipeline_confinamento <- function(
             dados = machos,
             
             peso_final_min =
-                  peso_final_min_machos,
+                  peso_final_machos,
             
             pcf_min =
-                  pcf_min_machos,
+                  pcf_machos,
             
             rcf_min =
-                  rcf_min_machos,
+                  rcf_machos,
             
             ecc_final_min =
-                  ecc_final_min_machos,
+                  ecc_machos,
             
             acabamento_min =
-                  acabamento_min_machos,
+                  acabamento_machos,
             
             conformacao_min =
-                  conformacao_min_machos
+                  conformacao_machos
       )
       
       # ===================================================
@@ -253,8 +231,7 @@ executar_pipeline_confinamento <- function(
                   alpha =
                         alpha_elastic,
                   
-                  nfolds =
-                        nfolds_elastic
+                  nfolds = 5
             )
             
             # ==============================================
@@ -420,13 +397,11 @@ executar_pipeline_confinamento <- function(
                   variavel_alvo =
                         variavel_predicao,
                   
-                  n_pontos =
-                        n_pontos_predicao,
+                  n_pontos = 100,
                   
                   n_boot =
                         n_boot_inferencial
             )
-            
             # ==============================================
             # PLOTS
             # ==============================================
