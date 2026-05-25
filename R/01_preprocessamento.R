@@ -58,6 +58,22 @@ preprocessar_dados <- function(
                         factor(idade_fct)
             )
       # ===================================================
+      # Conversão de variáveis numéricas
+      # ===================================================
+      # Conversão de escores ordinais
+      # ===================================================
+      dados <- dados |>
+            dplyr::mutate(
+                  acabamento =
+                        as.numeric(
+                              as.character(acabamento)
+                        ),
+                  conformacao =
+                        as.numeric(
+                              as.character(conformacao)
+                        )
+            )
+      # ===================================================
       # Transformações parasitológicas
       # ===================================================
       dados <- dados |>
