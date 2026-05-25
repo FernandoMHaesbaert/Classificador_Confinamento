@@ -346,21 +346,24 @@ executar_stability_selection <- function(
             
             modelo_boot <- tryCatch(
                   
-                  glmnet::cv.glmnet(
+                  suppressWarnings(
                         
-                        x = x_boot,
-                        
-                        y = y_boot,
-                        
-                        family = "binomial",
-                        
-                        alpha = alpha,
-                        
-                        nfolds = nfolds,
-                        
-                        type.measure = "deviance",
-                        
-                        standardize = TRUE
+                        glmnet::cv.glmnet(
+                              
+                              x = x_boot,
+                              
+                              y = y_boot,
+                              
+                              family = "binomial",
+                              
+                              alpha = alpha,
+                              
+                              nfolds = nfolds,
+                              
+                              type.measure = "deviance",
+                              
+                              standardize = TRUE
+                        )
                   ),
                   
                   error = function(e) NULL
@@ -560,7 +563,7 @@ executar_stability_selection <- function(
             
             list(
                   
-                  frequencia =
+                  tabela_final =
                         freq_selecao,
                   
                   variaveis_finais =
@@ -575,15 +578,20 @@ executar_stability_selection <- function(
                   modelos_invalidos =
                         modelos_invalidos,
                   
-                  x = x,
+                  x =
+                        x,
                   
-                  y = y,
+                  y =
+                        y,
                   
-                  alpha = alpha,
+                  alpha =
+                        alpha,
                   
-                  nfolds = nfolds,
+                  nfolds =
+                        nfolds,
                   
-                  n_boot = n_boot,
+                  n_boot =
+                        n_boot,
                   
                   limiar_frequencia =
                         limiar_frequencia

@@ -149,16 +149,16 @@ bootstrap_firth <- function(
                               sd(valores),
                         
                         IC_inf =
-                              quantile(
+                              as.numeric(quantile(
                                     valores,
                                     probs = alpha_inf
-                              ),
+                              )),
                         
                         IC_sup =
-                              quantile(
+                              as.numeric(quantile(
                                     valores,
                                     probs = alpha_sup
-                              ),
+                              )),
                         
                         Prob_coef_positivo =
                               mean(valores > 0),
@@ -265,6 +265,23 @@ bootstrap_firth <- function(
       )
       
       # ===================================================
+      # OBJETO PRINCIPAL PADRONIZADO
+      # ===================================================
+      
+      resultados <- resumo_or |>
+            
+            dplyr::left_join(
+                  
+                  estabilidade |>
+                        dplyr::select(
+                              Variavel,
+                              Estabilidade
+                        ),
+                  
+                  by = "Variavel"
+            )
+      
+      # ===================================================
       # RETORNO
       # ===================================================
       
@@ -272,11 +289,8 @@ bootstrap_firth <- function(
             
             list(
                   
-                  beta_boot =
-                        beta_boot_sem_intercepto,
-                  
-                  or_boot =
-                        or_boot,
+                  resultados =
+                        resultados,
                   
                   resumo_coef =
                         resumo_coef,
@@ -286,6 +300,12 @@ bootstrap_firth <- function(
                   
                   estabilidade =
                         estabilidade,
+                  
+                  beta_boot =
+                        beta_boot_sem_intercepto,
+                  
+                  or_boot =
+                        or_boot,
                   
                   n_boot =
                         n_boot,

@@ -28,6 +28,7 @@ carregar_pacotes <- function() {
             "scales",
             "ggpubr",
             "ggstatsplot",
+            "leaflet",
             # Modelagem
             "glmnet",
             "logistf",
@@ -78,3 +79,4 @@ carregar_pacotes <- function() {
             "\nPacotes carregados com sucesso."
       )
 }
+
