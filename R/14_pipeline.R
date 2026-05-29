@@ -247,6 +247,8 @@ executar_pipeline_confinamento <- function(
                   dados =
                         dados_subgrupo,
                   
+                  usar_lambda_1se = FALSE,
+                  
                   desfecho =
                         "apto_bin",
                   

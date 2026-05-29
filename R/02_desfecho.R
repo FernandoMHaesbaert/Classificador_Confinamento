@@ -104,7 +104,7 @@ criar_desfecho <- function(
       )
       print(resumo)
       # ===================================================
-      # Alerta para classes raras
+      # Alerta para classes raras ou dominantes
       # ===================================================
       prop_apto <- mean(dados$apto_bin)
       if(prop_apto < 0.25) {
