@@ -105,9 +105,9 @@ modulos <- c(
       
       "R/01_preprocessamento.R",
       
-      "R/02_subgrupos.R",
+      "R/02_desfecho.R",
       
-      "R/03_desfecho.R",
+      "R/03_subgrupos.R",
       
       "R/04_elasticnet.R",
       
@@ -125,7 +125,7 @@ modulos <- c(
       
       "R/11_tabelas.R",
       
-      "R/12_plots.R",
+      "R/12_graficos.R",
       
       "R/13_mapas.R",
       

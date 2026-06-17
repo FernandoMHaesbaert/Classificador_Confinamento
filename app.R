@@ -85,47 +85,30 @@ criterios_confinamento <- list(
 )
 
 criar_linha_criterio <- function(
-      
       id,
-      
       criterio
 ) {
-      
       shiny::tags$div(
-            
             class = "criterio-linha",
-            
             shiny::tags$div(
-                  
                   class = "criterio-check",
-                  
                   shiny::checkboxInput(
-                        
                         inputId = paste0("usar_", id),
-                        
                         label = NULL,
-                        
                         value = criterio$ativo
                   )
             ),
-            
             shiny::tags$div(
-                  
                   class = "criterio-nome",
-                  
                   shiny::tags$span(
                         criterio$rotulo
                   )
             ),
-            
             shiny::tags$div(
-                  
                   class = "criterio-meta",
-                  
                   shiny::tags$strong(
                         criterio$operador
                   ),
-                  
                   shiny::tags$span(
                         paste(
                               criterio$valor,
@@ -133,25 +116,15 @@ criar_linha_criterio <- function(
                         )
                   )
             ),
-            
             shiny::tags$div(
-                  
                   class = "criterio-slider",
-                  
                   shiny::sliderInput(
-                        
                         inputId = paste0("valor_", id),
-                        
                         label = NULL,
-                        
                         min = criterio$minimo,
-                        
                         max = criterio$maximo,
-                        
                         value = criterio$valor,
-                        
                         step = criterio$passo,
-                        
                         ticks = FALSE
                   )
             )
@@ -416,7 +389,7 @@ ui <- shiny::fluidPage(
                         
                         shiny::column(
                               
-                              width = 8,
+                              width = 12,
                               
                               shiny::div(
                                     
@@ -466,36 +439,6 @@ ui <- shiny::fluidPage(
                         "status_execucao"
                   )
             ),
-            
-            shiny::column(
-                  
-                  width = 3,
-                  
-                  shiny::br(),
-                  shiny::br(),
-                  
-                  shiny::div(
-                        class = "bloco-saida",
-                        "ABATE DIRETO"
-                  ),
-                  
-                  shiny::div(
-                        class = "bloco-saida",
-                        "CONFINAMENTO",
-                        shiny::tags$ul(
-                              shiny::tags$li("Identificacao"),
-                              shiny::tags$li("Classificacao em lotes homogeneos")
-                        )
-                  ),
-                  
-                  shiny::div(
-                        class = "bloco-saida",
-                        "DESCARTE",
-                        shiny::tags$ul(
-                              shiny::tags$li("Outros destinos")
-                        )
-                  )
-            )
       ),
       
       shiny::tabsetPanel(
@@ -726,100 +669,74 @@ server <- function(
             
             criterios_ativos_tabela()
       })
-      
       resultado_pipeline <- shiny::eventReactive(
-            
             input$executar,
-            
             {
-                  
                   if(!any(vapply(names(criterios_confinamento), criterio_ativo, logical(1)))) {
-                        
                         shiny::showNotification(
-                              
                               "Selecione pelo menos uma variavel-alvo para definir o desfecho operacional.",
-                              
                               type = "error"
                         )
-                        
                         return(NULL)
                   }
-                  
                   if(length(input$sexos_alvo) == 0) {
-                        
                         shiny::showNotification(
-                              
                               "Selecione pelo menos uma categoria de sexo.",
-                              
                               type = "error"
                         )
-                        
                         return(NULL)
                   }
-                  
                   shiny::withProgress(
-                        
                         message = "Executando pipeline analitico...",
-                        
                         value = 0,
-                        
                         {
-                              
                               shiny::incProgress(
                                     0.2,
                                     detail = "Construindo desfecho com os criterios selecionados..."
                               )
-                              
                               tryCatch(
-                                    
                                     {
-                                          
                                           executar_pipeline_confinamento(
-                                                
                                                 peso_final_machos =
                                                       limiar_criterio("peso_final"),
-                                                
                                                 pcf_machos =
                                                       limiar_criterio("pcf"),
-                                                
                                                 rcf_machos =
                                                       limiar_criterio("rcf") / 100,
-                                                
                                                 ecc_machos =
                                                       limiar_criterio("ecc"),
-                                                
                                                 acabamento_machos =
                                                       limiar_criterio("acabamento"),
-                                                
                                                 conformacao_machos =
                                                       limiar_criterio("conformacao"),
-                                                
                                                 peso_final_femeas =
                                                       limiar_criterio("peso_final"),
-                                                
                                                 pcf_femeas =
                                                       limiar_criterio("pcf"),
-                                                
                                                 rcf_femeas =
                                                       limiar_criterio("rcf") / 100,
-                                                
                                                 ecc_femeas =
                                                       limiar_criterio("ecc"),
-                                                
                                                 acabamento_femeas =
                                                       limiar_criterio("acabamento"),
-                                                
                                                 conformacao_femeas =
                                                       limiar_criterio("conformacao"),
-                                                
+                                                usar_peso_final =
+                                                      criterio_ativo("peso_final"),
+                                                usar_pcf =
+                                                      criterio_ativo("pcf"),
+                                                usar_rcf =
+                                                      criterio_ativo("rcf"),
+                                                usar_ecc_final =
+                                                      criterio_ativo("ecc"),
+                                                usar_acabamento =
+                                                      criterio_ativo("acabamento"),
+                                                usar_conformacao =
+                                                      criterio_ativo("conformacao"),
                                                 seed = CONFIG$seed,
-                                                
                                                 alpha_elastic = CONFIG$alpha_elastic,
-                                                
                                                 n_boot_stability = CONFIG$n_boot_stability,
-                                                
                                                 n_boot_inferencial = CONFIG$n_boot_inferencial,
-                                                
                                                 verbose = FALSE
                                           )
                                     },
@@ -913,26 +830,26 @@ server <- function(
             dplyr::bind_rows(tabelas)
       })
       
-      output$metricas_femeas <- shiny::renderTable({
-            
-            shiny::req(
-                  resultado_pipeline()
-            )
-            
+      output$metricas_femeas <- renderTable({
+            resultado <- resultado_pipeline()
+            if(
+                  is.null(resultado) ||
+                  is.null(resultado$femeas)
+            ){
+                  return(NULL)
+            }
             tibble::tibble(
-                  
-                  Metrica = c(
+                  Métrica = c(
                         "AUC",
                         "Sensibilidade",
                         "Especificidade",
-                        "Acuracia"
+                        "Acurácia"
                   ),
-                  
                   Valor = c(
-                        round(resultado_pipeline()$femeas$roc$auc, 3),
-                        round(resultado_pipeline()$femeas$roc$sensibilidade, 3),
-                        round(resultado_pipeline()$femeas$roc$especificidade, 3),
-                        round(resultado_pipeline()$femeas$roc$acuracia, 3)
+                        round(resultado$femeas$roc$auc, 3),
+                        round(resultado$femeas$roc$sensibilidade, 3),
+                        round(resultado$femeas$roc$especificidade, 3),
+                        round(resultado$femeas$roc$acuracia, 3)
                   )
             )
       })

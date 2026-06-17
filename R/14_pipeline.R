@@ -29,72 +29,51 @@
 # =========================================================
 
 executar_pipeline_confinamento <- function(
-            
       # ==========================================
       # MACHOS
       # ==========================================
-      
       peso_final_machos = 35,
-      
       pcf_machos = 15,
-      
       rcf_machos = 0.45,
-      
       ecc_machos = 3,
-      
       acabamento_machos = 3,
-      
       conformacao_machos = 3,
-      
       # ==========================================
       # FÊMEAS
       # ==========================================
-      
       peso_final_femeas = 30,
-      
       pcf_femeas = 14,
-      
       rcf_femeas = 0.45,
-      
       ecc_femeas = 3,
-      
       acabamento_femeas = 3,
-      
       conformacao_femeas = 3,
-      
       # ==========================================
+      usar_peso_final = TRUE,
+      usar_pcf = TRUE,
+      usar_rcf = TRUE,
+      usar_ecc_final = TRUE,
+      usar_acabamento = TRUE,
+      usar_conformacao = TRUE,
       # PARÂMETROS DO PIPELINE
       # ==========================================
-      
       seed = 123,
-      
       alpha_elastic = 0.5,
-      
       n_boot_stability = 500,
-      
       n_boot_inferencial = 500,
-      
       verbose = TRUE
 ) {
-      
       # ===================================================
       # SEED
       # ===================================================
-      
       set.seed(seed)
-      
       # ===================================================
       # LOG AUXILIAR
       # ===================================================
-      
       log_mensagem <- function(...) {
-            
             if(verbose) {
-                  
                   message(...)
             }
       }
-      
       # ===================================================
       # CARREGAMENTO
       # ===================================================
@@ -145,64 +124,45 @@ executar_pipeline_confinamento <- function(
       log_mensagem(
             "\n========== DESFECHO =========="
       )
-      
       femeas_desfecho <- criar_desfecho(
-            
             dados = femeas,
-            
-            peso_final_min =
-                  peso_final_femeas,
-            
-            pcf_min =
-                  pcf_femeas,
-            
-            rcf_min =
-                  rcf_femeas,
-            
-            ecc_final_min =
-                  ecc_femeas,
-            
-            acabamento_min =
-                  acabamento_femeas,
-            
-            conformacao_min =
-                  conformacao_femeas
+            peso_final_min = peso_final_femeas,
+            pcf_min = pcf_femeas,
+            rcf_min = rcf_femeas,
+            ecc_final_min = ecc_femeas,
+            acabamento_min = acabamento_femeas,
+            conformacao_min = conformacao_femeas,
+            usar_peso_final = usar_peso_final,
+            usar_pcf = usar_pcf,
+            usar_rcf = usar_rcf,
+            usar_ecc_final = usar_ecc_final,
+            usar_acabamento = usar_acabamento,
+            usar_conformacao = usar_conformacao
       )
-      
       machos_desfecho <- criar_desfecho(
-            
             dados = machos,
-            
-            peso_final_min =
-                  peso_final_machos,
-            
-            pcf_min =
-                  pcf_machos,
-            
-            rcf_min =
-                  rcf_machos,
-            
-            ecc_final_min =
-                  ecc_machos,
-            
-            acabamento_min =
-                  acabamento_machos,
-            
-            conformacao_min =
-                  conformacao_machos
+            peso_final_min = peso_final_machos,
+            pcf_min = pcf_machos,
+            rcf_min = rcf_machos,
+            ecc_final_min = ecc_machos,
+            acabamento_min = acabamento_machos,
+            conformacao_min = conformacao_machos,
+            usar_peso_final = usar_peso_final,
+            usar_pcf = usar_pcf,
+            usar_rcf = usar_rcf,
+            usar_ecc_final = usar_ecc_final,
+            usar_acabamento = usar_acabamento,
+            usar_conformacao = usar_conformacao
       )
       
+     
       # ===================================================
       # FUNÇÃO AUXILIAR
       # ===================================================
-      
       executar_fluxo <- function(
-            
             dados_subgrupo,
-            
             sexo_label
       ) {
-            
             log_mensagem(
                   paste0(
                         "\n========================================\n",
@@ -211,59 +171,43 @@ executar_pipeline_confinamento <- function(
                         "\n========================================"
                   )
             )
-            
+
             # ==============================================
             # ELASTIC NET
             # ==============================================
-            
             log_mensagem(
                   "\n--- Elastic Net ---"
             )
-            
             elastic <- ajustar_elasticnet(
-                  
                   dados =
                         dados_subgrupo,
-                  
                   desfecho =
                         "apto_bin",
-                  
                   alpha =
                         alpha_elastic,
-                  
                   nfolds = 5
             )
             
             # ==============================================
             # STABILITY SELECTION
             # ==============================================
-            
             log_mensagem(
                   "\n--- Stability Selection ---"
             )
-            
             stability <- executar_stability_selection(
-                  
                   dados =
                         dados_subgrupo,
-                  
                   usar_lambda_1se = FALSE,
-                  
                   desfecho =
                         "apto_bin",
-                  
                   alpha =
                         alpha_elastic,
-                  
                   n_boot =
                         n_boot_stability
             )
-            
             variaveis_finais <-
                   stability$variaveis_finais
-            
             if(length(variaveis_finais) == 0) {
-                  
                   stop(
                         paste(
                               "Nenhuma variável robusta encontrada:",
@@ -275,16 +219,12 @@ executar_pipeline_confinamento <- function(
             # ==============================================
             # FIRTH
             # ==============================================
-            
             log_mensagem(
                   "\n--- Modelo Firth ---"
             )
-            
             modelo_firth <- ajustar_firth(
-                  
                   dados =
                         dados_subgrupo,
-                  
                   variaveis_finais =
                         variaveis_finais
             )
@@ -292,19 +232,14 @@ executar_pipeline_confinamento <- function(
             # ==============================================
             # BOOTSTRAP
             # ==============================================
-            
             log_mensagem(
                   "\n--- Bootstrap Inferencial ---"
             )
-            
             bootstrap <- bootstrap_firth(
-                  
                   modelo_firth =
                         modelo_firth$modelo,
-                  
                   n_boot =
                         n_boot_inferencial,
-                  
                   seed =
                         seed
             )
@@ -312,36 +247,26 @@ executar_pipeline_confinamento <- function(
             # ==============================================
             # ROC
             # ==============================================
-            
             log_mensagem(
                   "\n--- ROC ---"
             )
-            
             roc <- avaliar_roc(
-                  
                   modelo_firth =
                         modelo_firth$modelo,
-                  
                   dados =
                         dados_subgrupo
             )
-            
             # ==============================================
             # INTERPRETABILIDADE
             # ==============================================
-            
             log_mensagem(
                   "\n--- Interpretabilidade ---"
             )
-            
             interpretabilidade <- interpretar_modelo(
-                  
                   modelo_firth =
                         modelo_firth$modelo,
-                  
                   bootstrap_resultado =
                         bootstrap,
-                  
                   titulo_modelo =
                         sexo_label
             )
@@ -349,13 +274,10 @@ executar_pipeline_confinamento <- function(
             # ==============================================
             # TABELAS
             # ==============================================
-            
             log_mensagem(
                   "\n--- Tabelas ---"
             )
-            
             tabela_or_modelo <- tabela_or(
-                  
                   modelo_firth =
                         modelo_firth$modelo
             )
@@ -566,32 +488,6 @@ executar_pipeline_confinamento <- function(
       }
       
       # ===================================================
-      # EXECUÇÃO — FÊMEAS
-      # ===================================================
-      
-      resultados_femeas <- executar_fluxo(
-            
-            dados_subgrupo =
-                  femeas_desfecho,
-            
-            sexo_label =
-                  "Fêmeas"
-      )
-      
-      # ===================================================
-      # EXECUÇÃO — MACHOS
-      # ===================================================
-      
-      resultados_machos <- executar_fluxo(
-            
-            dados_subgrupo =
-                  machos_desfecho,
-            
-            sexo_label =
-                  "Machos"
-      )
-      
-      # ===================================================
       # FINALIZAÇÃO
       # ===================================================
       
@@ -610,34 +506,41 @@ executar_pipeline_confinamento <- function(
       # ===================================================
       # RETORNO FINAL
       # ===================================================
+      resultado_femeas <- NULL
+      resultado_machos <- NULL
+      
+      if(length(unique(femeas_desfecho$apto_bin)) >= 2){
+            resultado_femeas <- executar_fluxo(
+                  dados_subgrupo = femeas_desfecho,
+                  sexo_label = "Fêmeas"
+            )
+      }
+      
+      if(length(unique(machos_desfecho$apto_bin)) >= 2){
+            resultado_machos <- executar_fluxo(
+                  dados_subgrupo = machos_desfecho,
+                  sexo_label = "Machos"
+            )
+      }
       
       return(
             list(
-                  
                   dados_processados =
                         dados_processados,
-                  
                   subgrupos =
                         subgrupos,
-                  
                   femeas =
-                        resultados_femeas,
-                  
+                        resultado_femeas,
                   machos =
-                        resultados_machos,
-                  
+                        resultado_machos,
                   parametros =
                         list(
-                              
                               alpha_elastic =
                                     alpha_elastic,
-                              
                               n_boot_stability =
                                     n_boot_stability,
-                              
                               n_boot_inferencial =
                                     n_boot_inferencial,
-                              
                               seed =
                                     seed
                         )

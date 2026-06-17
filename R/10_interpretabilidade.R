@@ -132,22 +132,16 @@ interpretar_modelo <- function(
       # ===================================================
       # FOREST PLOT
       # ===================================================
-      
       forest_plot <- ggplot2::ggplot(
-            
             tabela_interpretacao,
-            
             ggplot2::aes(
-                  
                   x = reorder(
                         Variavel,
                         OR
                   ),
-                  
                   y = OR
             )
       ) +
-            
             ggplot2::geom_point(
                   size = 3
             ) +
