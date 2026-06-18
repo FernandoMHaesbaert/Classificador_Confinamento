@@ -14,9 +14,7 @@ source("global.R")
 # =========================================================
 # CONFIGURACAO DA INTERFACE
 # =========================================================
-
 criterios_confinamento <- list(
-      
       pcf = list(
             rotulo = "Peso carcaca fria",
             operador = ">=",
@@ -27,7 +25,6 @@ criterios_confinamento <- list(
             passo = 0.5,
             ativo = TRUE
       ),
-      
       peso_final = list(
             rotulo = "Peso final",
             operador = ">=",
@@ -38,7 +35,6 @@ criterios_confinamento <- list(
             passo = 0.5,
             ativo = FALSE
       ),
-      
       rcf = list(
             rotulo = "Rend. carc. fria",
             operador = ">=",
@@ -49,7 +45,6 @@ criterios_confinamento <- list(
             passo = 0.5,
             ativo = FALSE
       ),
-      
       acabamento = list(
             rotulo = "Acabamento",
             operador = ">=",
@@ -60,7 +55,6 @@ criterios_confinamento <- list(
             passo = 0.5,
             ativo = FALSE
       ),
-      
       ecc = list(
             rotulo = "ECC",
             operador = ">=",
@@ -311,13 +305,6 @@ ui <- shiny::fluidPage(
             
             "APTA-Ov: Sistema Inteligente de Apoio à Seleção de Ovinos para Terminação em Confinamento"
       ),
-      
-      shiny::h2(
-            
-            class = "app-subtitle",
-            
-            "APTA-Ov"
-      ),
       shiny::fluidRow(
             # COLUNA 1
             shiny::column(
@@ -334,9 +321,7 @@ ui <- shiny::fluidPage(
                                     "Femea"
                               ),
                               selected = c(
-                                    "Macho inteiro",
-                                    "Macho castrado",
-                                    "Femea"
+                                    "Macho inteiro"
                               )
                         )
                   )
@@ -347,7 +332,7 @@ ui <- shiny::fluidPage(
                   shiny::div(
                         class = "painel-controle",
                         shiny::h3(
-                              "Definicao do objetivo do confinamento"
+                              "Definição do objetivo do confinamento"
                         ),
                         shiny::div(
                               class = "criterio-cabecalho",
@@ -368,17 +353,10 @@ ui <- shiny::fluidPage(
             # COLUNA 3
             shiny::column(
                   width = 4,
-                  
-                  shiny::div(
-                        class = "bloco-azul-lateral",
-                        "APTA-Ov"
-                  ),
-                  
                   shiny::br(),
-                  
                   shiny::actionButton(
                         inputId = "executar",
-                        label = "Executar classificacao",
+                        label = "Executar Classificação",
                         class = "btn-primary"
                   ),
                   
@@ -393,7 +371,7 @@ ui <- shiny::fluidPage(
       
       shiny::tabsetPanel(
             shiny::tabPanel(
-                  title = "Classificacao",
+                  title = "Classificação",
                   shiny::br(),
                   shiny::fluidRow(
                         # CRITÉRIOS
@@ -487,7 +465,7 @@ ui <- shiny::fluidPage(
             
             shiny::tabPanel(
                   
-                  title = "Predicoes",
+                  title = "Predições",
                   
                   shiny::br(),
                   
