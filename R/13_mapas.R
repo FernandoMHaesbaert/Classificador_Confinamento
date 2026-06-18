@@ -1,614 +1,224 @@
 # =========================================================
 # MÓDULO 13 — MAPAS
 # =========================================================
-# Objetivo:
-# Gerar mapas espaciais e superfícies de risco
-# aplicadas ao confinamento ovino.
-#
-# Inclui:
-# - mapas de probabilidade predita;
-# - mapas sanitários;
-# - mapas de desempenho;
-# - mapas de clusters;
-# - heatmaps espaciais;
-# - integração com leaflet.
-#
-# Estrutura preparada para:
-# - GPS de lotes;
-# - sensores;
-# - integração futura com VANTs;
-# - dashboards Shiny.
-# =========================================================
-
-# =========================================================
-# VERIFICAÇÃO DE PACOTES
-# =========================================================
-
-if(!requireNamespace("sf", quietly = TRUE)) {
-      
-      stop(
-            "Pacote 'sf' não instalado."
-      )
-}
-
-if(!requireNamespace("leaflet", quietly = TRUE)) {
-      
-      stop(
-            "Pacote 'leaflet' não instalado."
-      )
-}
-
-# =========================================================
-# CONVERSÃO PARA OBJETO ESPACIAL
-# =========================================================
-
-criar_objeto_sf <- function(
-            
-      dados,
-      
-      longitude,
-      
-      latitude,
-      
-      crs = 4326
-) {
-      
-      # ===================================================
-      # VALIDAÇÃO
-      # ===================================================
-      
-      if(!all(
-            c(longitude, latitude) %in%
-            names(dados)
-      )) {
-            
-            stop(
-                  "Longitude/Latitude não encontradas."
+gerar_mapa_principal <- function(resultado){
+      # =====================================================
+      # OBJETOS
+      # =====================================================
+      modelo <- resultado$modelo_firth$modelo
+      cat("\nTERMOS DO MODELO:\n")
+      print(
+            attr(
+                  terms(modelo),
+                  "term.labels"
             )
+      )
+      dados <- resultado$dados
+      # =====================================================
+      # GRID
+      # =====================================================
+      grid <- expand.grid(
+            ecc_inicial = seq(1, 5, by = 0.05),
+            peso_inicial = seq(
+                        floor(min(dados$peso_inicial, na.rm = TRUE)),
+                        ceiling(max(dados$peso_inicial, na.rm = TRUE)),
+                        by = 0.10
+                  )
+      )
+      
+      # =====================================================
+      # FIXAR VARIÁVEIS AUSENTES
+      # =====================================================
+      termos_modelo <- attr(
+            terms(modelo),
+            "term.labels"
+      )
+      for(v in termos_modelo){
+            if(!v %in% names(grid)){
+                  if(v %in% names(dados)){
+                        if(is.numeric(dados[[v]])){
+                              grid[[v]] <- median(
+                                    dados[[v]],
+                                    na.rm = TRUE
+                              )
+                        } else {
+                              grid[[v]] <- names(
+                                    sort(
+                                          table(dados[[v]]),
+                                          decreasing = TRUE
+                                    )
+                              )[1]
+                        }
+                  }
+            }
       }
+      # =====================================================
+      # DIAGNÓSTICO
+      # =====================================================
+      cat("\nTERMOS DO MODELO:\n")
+      print(termos_modelo)
       
-      # ===================================================
-      # CONVERSÃO
-      # ===================================================
+      cat("\nCOLUNAS DO GRID:\n")
+      print(names(grid))
       
-      dados_sf <- sf::st_as_sf(
-            
-            dados,
-            
-            coords = c(
-                  longitude,
-                  latitude
-            ),
-            
-            crs = crs
-      )
-      
-      return(dados_sf)
-}
-
-# =========================================================
-# MAPA DE PROBABILIDADE PREDITA
-# =========================================================
-
-mapa_probabilidade <- function(
-            
-      dados_sf,
-      
-      variavel_probabilidade = "probabilidade",
-      
-      titulo = "Mapa de Probabilidade Predita"
-) {
-      
-      grafico <- ggplot2::ggplot(
-            
-            dados_sf
-      ) +
-            
-            ggplot2::geom_sf(
-                  
-                  ggplot2::aes_string(
-                        color = variavel_probabilidade
-                  ),
-                  
-                  size = 3
-            ) +
-            
-            ggplot2::scale_color_viridis_c() +
-            
-            ggplot2::labs(
-                  
-                  title = titulo,
-                  
-                  color = "Probabilidade"
-            ) +
-            
-            ggplot2::theme_minimal()
-      
-      return(grafico)
-}
-
-# =========================================================
-# MAPA SANITÁRIO
-# =========================================================
-
-mapa_sanitario <- function(
-            
-      dados_sf,
-      
-      variavel_sanitaria,
-      
-      titulo = "Mapa Sanitário"
-) {
-      
-      grafico <- ggplot2::ggplot(
-            
-            dados_sf
-      ) +
-            
-            ggplot2::geom_sf(
-                  
-                  ggplot2::aes_string(
-                        color = variavel_sanitaria
-                  ),
-                  
-                  size = 3
-            ) +
-            
-            ggplot2::scale_color_viridis_c() +
-            
-            ggplot2::labs(
-                  
-                  title = titulo,
-                  
-                  color = variavel_sanitaria
-            ) +
-            
-            ggplot2::theme_minimal()
-      
-      return(grafico)
-}
-
-# =========================================================
-# MAPA CATEGÓRICO
-# =========================================================
-
-mapa_categorico <- function(
-            
-      dados_sf,
-      
-      variavel_categoria,
-      
-      titulo = "Mapa Categórico"
-) {
-      
-      grafico <- ggplot2::ggplot(
-            
-            dados_sf
-      ) +
-            
-            ggplot2::geom_sf(
-                  
-                  ggplot2::aes_string(
-                        fill = variavel_categoria
-                  ),
-                  
-                  shape = 21,
-                  
-                  size = 4
-            ) +
-            
-            ggplot2::labs(
-                  
-                  title = titulo,
-                  
-                  fill = variavel_categoria
-            ) +
-            
-            ggplot2::theme_minimal()
-      
-      return(grafico)
-}
-
-# =========================================================
-# HEATMAP ESPACIAL
-# =========================================================
-
-heatmap_espacial <- function(
-            
-      dados,
-      
-      longitude,
-      
-      latitude,
-      
-      variavel,
-      
-      titulo = "Heatmap Espacial"
-) {
-      
-      grafico <- ggplot2::ggplot(
-            
-            dados,
-            
-            ggplot2::aes_string(
-                  
-                  x = longitude,
-                  
-                  y = latitude
-            )
-      ) +
-            
-            ggplot2::stat_density_2d(
-                  
-                  ggplot2::aes(
-                        fill = ..level..
-                  ),
-                  
-                  geom = "polygon",
-                  
-                  alpha = 0.5
-            ) +
-            
-            ggplot2::geom_point(
-                  
-                  ggplot2::aes_string(
-                        color = variavel
-                  ),
-                  
-                  size = 2
-            ) +
-            
-            ggplot2::scale_fill_viridis_c() +
-            
-            ggplot2::scale_color_viridis_c() +
-            
-            ggplot2::labs(
-                  
-                  title = titulo
-            ) +
-            
-            ggplot2::theme_minimal()
-      
-      return(grafico)
-}
-
-# =========================================================
-# CLUSTERS ESPACIAIS
-# =========================================================
-
-mapa_clusters <- function(
-            
-      dados,
-      
-      longitude,
-      
-      latitude,
-      
-      n_clusters = 3,
-      
-      seed = 123
-) {
-      
-      set.seed(seed)
-      
-      # ===================================================
-      # MATRIZ ESPACIAL
-      # ===================================================
-      
-      coords <- dados |>
-            
+      # =====================================================
+      # PROTEÇÃO
+      # =====================================================
+      grid <- grid |>
             dplyr::select(
                   dplyr::all_of(
-                        c(
-                              longitude,
-                              latitude
+                        unique(
+                              c(
+                                    termos_modelo,
+                                    "ecc_inicial",
+                                    "peso_inicial"
+                              )
                         )
                   )
-            ) |>
-            
-            as.matrix()
-      
-      # ===================================================
-      # KMEANS
-      # ===================================================
-      
-      kmeans_fit <- stats::kmeans(
-            
-            coords,
-            
-            centers = n_clusters
-      )
-      
-      dados$cluster <- as.factor(
-            kmeans_fit$cluster
-      )
-      
-      # ===================================================
-      # PLOT
-      # ===================================================
-      
-      grafico <- ggplot2::ggplot(
-            
-            dados,
-            
-            ggplot2::aes_string(
-                  
-                  x = longitude,
-                  
-                  y = latitude,
-                  
-                  color = "cluster"
             )
-      ) +
-            
-            ggplot2::geom_point(
-                  size = 3
-            ) +
-            
-            ggplot2::labs(
-                  
-                  title = "Clusters Espaciais"
-            ) +
-            
-            ggplot2::theme_minimal()
       
-      return(
-            list(
-                  
-                  dados = dados,
-                  
-                  modelo = kmeans_fit,
-                  
-                  grafico = grafico
-            )
-      )
-}
-
-# =========================================================
-# MAPA INTERATIVO LEAFLET
-# =========================================================
-
-mapa_leaflet <- function(
-            
-      dados,
-      
-      longitude,
-      
-      latitude,
-      
-      popup_variavel = NULL,
-      
-      variavel_cor = NULL
-) {
-      
-      # ===================================================
-      # PALETA
-      # ===================================================
-      
-      if(!is.null(variavel_cor)) {
-            
-            pal <- leaflet::colorNumeric(
-                  
-                  palette = "viridis",
-                  
-                  domain = dados[[variavel_cor]]
-            )
-      }
-      
-      # ===================================================
-      # MAPA
-      # ===================================================
-      
-      mapa <- leaflet::leaflet(
-            
-            dados
-      ) |>
-            
-            leaflet::addTiles()
-      
-      # ===================================================
-      # MARCADORES
-      # ===================================================
-      
-      if(is.null(variavel_cor)) {
-            
-            mapa <- mapa |>
-                  
-                  leaflet::addCircleMarkers(
-                        
-                        lng = dados[[longitude]],
-                        
-                        lat = dados[[latitude]],
-                        
-                        popup = if(!is.null(popup_variavel))
-                              as.character(
-                                    dados[[popup_variavel]]
-                              )
-                        else NULL,
-                        
-                        radius = 5
-                  )
-            
-      } else {
-            
-            mapa <- mapa |>
-                  
-                  leaflet::addCircleMarkers(
-                        
-                        lng = dados[[longitude]],
-                        
-                        lat = dados[[latitude]],
-                        
-                        color = pal(
-                              dados[[variavel_cor]]
-                        ),
-                        
-                        popup = if(!is.null(popup_variavel))
-                              as.character(
-                                    dados[[popup_variavel]]
-                              )
-                        else NULL,
-                        
-                        radius = 6
-                  )
-      }
-      
-      return(mapa)
-}
-
-# =========================================================
-# SUPERFÍCIE ESPACIAL SIMPLIFICADA
-# =========================================================
-
-superficie_risco <- function(
-            
-      dados,
-      
-      longitude,
-      
-      latitude,
-      
-      variavel,
-      
-      grid_n = 100
-) {
-      
-      # ===================================================
-      # GRID
-      # ===================================================
-      
-      grid_x <- seq(
-            
-            min(dados[[longitude]]),
-            
-            max(dados[[longitude]]),
-            
-            length.out = grid_n
-      )
-      
-      grid_y <- seq(
-            
-            min(dados[[latitude]]),
-            
-            max(dados[[latitude]]),
-            
-            length.out = grid_n
-      )
-      
-      grade <- expand.grid(
-            
-            x = grid_x,
-            
-            y = grid_y
-      )
-      
-      # ===================================================
-      # INTERPOLAÇÃO SIMPLIFICADA
-      # ===================================================
-      
-      ajuste <- stats::loess(
-            
-            formula = as.formula(
-                  
-                  paste(
-                        variavel,
-                        "~",
-                        longitude,
-                        "+",
-                        latitude
-                  )
+      # =====================================================
+      # PREDIÇÃO
+      # =====================================================
+      grid$prob_apto <- tryCatch(
+            predict(
+                  modelo,
+                  newdata = grid,
+                  type = "response"
             ),
-            
-            data = dados
+            error = function(e){
+                  cat(
+                        "\nERRO NO PREDICT:\n"
+                  )
+                  print(e)
+                  return(
+                        rep(
+                              NA_real_,
+                              nrow(grid)
+                        )
+                  )
+            }
       )
       
-      novo_dado <- data.frame(
-            
-            x_coord = grade$x,
-            
-            y_coord = grade$y
-      )
+      # =====================================================
+      # REMOVER NAs
+      # =====================================================
+      grid <- grid |>
+            dplyr::filter(
+                  !is.na(prob_apto)
+            )
+      if(nrow(grid) == 0){
+            return(
+                  ggplot2::ggplot() +
+                        ggplot2::annotate(
+                              "text",
+                              x = 0,
+                              y = 0,
+                              label =
+                                    "Não foi possível gerar o mapa",
+                              size = 8
+                        ) +
+                        ggplot2::theme_void()
+            )
+      }
       
-      names(novo_dado) <- c(
-            longitude,
-            latitude
-      )
+      # =====================================================
+      # CLASSIFICAÇÃO
+      # =====================================================
+      grid <- grid |>
+            dplyr::mutate(
+                  faixa =
+                        dplyr::ntile(
+                              prob_apto,
+                              4
+                        )
+            ) |>
+            dplyr::mutate(
+                  classe =
+                        dplyr::case_when(
+                              faixa == 1 ~
+                                    "Não recomendado",
+                              faixa == 2 ~
+                                    "Pouco recomendado",
+                              faixa == 3 ~
+                                    "Apto potencial",
+                              TRUE ~
+                                    "Apto prioritário"
+                        )
+            )
       
-      grade$pred <- predict(
-            
-            ajuste,
-            
-            newdata = novo_dado
-      )
-      
-      # ===================================================
-      # PLOT
-      # ===================================================
-      
-      grafico <- ggplot2::ggplot(
-            
-            grade,
-            
+      # =====================================================
+      # MAPA
+      # =====================================================
+      ggplot2::ggplot(
+            grid,
             ggplot2::aes(
-                  
-                  x = x,
-                  
-                  y = y,
-                  
-                  fill = pred
+                  x = peso_inicial,
+                  y = ecc_inicial,
+                  fill = classe
             )
       ) +
-            
-            ggplot2::geom_raster() +
-            
-            ggplot2::scale_fill_viridis_c() +
-            
-            ggplot2::labs(
-                  
-                  title = "Superfície Espacial de Risco",
-                  
-                  fill = "Predição"
+            ggplot2::geom_tile() +
+            ggplot2::geom_point(
+                  data = dados,
+                  ggplot2::aes(
+                        x = peso_inicial,
+                        y = ecc_inicial,
+                        shape = factor(apto_bin)
+                  ),
+                  inherit.aes = FALSE,
+                  color = "black",
+                  size = 2.5,
+                  stroke = 0.8
             ) +
-            
-            ggplot2::theme_minimal()
-      
-      return(grafico)
-}
-
-# =========================================================
-# EXPORTAÇÃO DE MAPAS
-# =========================================================
-
-exportar_mapa <- function(
-            
-      grafico,
-      
-      caminho,
-      
-      largura = 10,
-      
-      altura = 8,
-      
-      dpi = 300
-) {
-      
-      ggplot2::ggsave(
-            
-            filename = caminho,
-            
-            plot = grafico,
-            
-            width = largura,
-            
-            height = altura,
-            
-            dpi = dpi
-      )
-      
-      message(
-            paste(
-                  "Mapa exportado:",
-                  caminho
+            ggplot2::scale_fill_manual(
+                  values = c(
+                        "Não recomendado" =
+                              "#C0392B",
+                        "Pouco recomendado" =
+                              "#F39C12",
+                        "Apto potencial" =
+                              "#7DCEA0",
+                        "Apto prioritário" =
+                              "#009639"
+                  )
+            ) +
+            ggplot2::scale_shape_manual(
+                  values = c(
+                        1,
+                        16
+                  ),
+                  labels = c(
+                        "Não apto",
+                        "Apto"
+                  )
+            ) +
+            ggplot2::labs(
+                  title =
+                        "Mapa de Seleção de Animais",
+                  subtitle =
+                        "Peso Inicial × ECC Inicial",
+                  x =
+                        "Peso inicial (kg)",
+                  y =
+                        "ECC inicial",
+                  fill =
+                        "Classificação",
+                  shape =
+                        "Observação"
+            ) +
+            ggplot2::theme_classic() +
+            ggplot2::theme(
+                  legend.position =
+                        "bottom",
+                  plot.title =
+                        ggplot2::element_text(
+                              face = "bold",
+                              size = 16
+                        ),
+                  plot.subtitle =
+                        ggplot2::element_text(
+                              size = 11
+                        )
             )
-      )
 }

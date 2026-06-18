@@ -134,11 +134,8 @@ criar_linha_criterio <- function(
 # =========================================================
 # UI
 # =========================================================
-
 ui <- shiny::fluidPage(
-      
       shiny::tags$head(
-            
             shiny::tags$style(
                   shiny::HTML(
                         "
@@ -148,7 +145,7 @@ ui <- shiny::fluidPage(
                               font-family: 'Segoe UI', Arial, sans-serif;
                         }
                         .container-fluid {
-                              max-width: 1220px;
+                              width: 95%;
                         }
                         .app-title {
                               color: #3f73c8;
@@ -171,6 +168,21 @@ ui <- shiny::fluidPage(
                               border: 1px solid #d9e6dc;
                               padding: 18px;
                               margin-bottom: 18px;
+                        }
+                        .bloco-azul-lateral {
+                              background: #0b2f86;
+                              color: white;
+                              font-weight: 800;
+                              text-align: center;
+                              padding: 24px;
+                              border-radius: 6px;
+                              font-size: 28px;
+                              margin-bottom: 18px;
+                        }
+                        #mapa_principal {
+                              border: 1px solid #d9e6dc;
+                              background: white;
+                              padding: 8px;
                         }
                         .fluxo-coluna {
                               min-height: 520px;
@@ -230,12 +242,12 @@ ui <- shiny::fluidPage(
                               border-radius: 6px;
                               padding: 12px;
                               background: #ffffff;
-                              min-height: 170px;
+                              min-height: auto;
                         }
                         .criterio-cabecalho,
                         .criterio-linha {
                               display: grid;
-                              grid-template-columns: 42px 1.3fr 95px 1.8fr;
+                              grid-template-columns: 40px 1.6fr 90px 3fr;
                               gap: 8px;
                               align-items: center;
                         }
@@ -285,7 +297,7 @@ ui <- shiny::fluidPage(
                               }
                               .criterio-meta,
                               .criterio-slider {
-                                    grid-column: 2;
+                                    width:100%;
                               }
                         }
                         "
@@ -297,7 +309,7 @@ ui <- shiny::fluidPage(
             
             class = "app-title",
             
-            "Modelo de Predicao de Aptidao ao Confinamento"
+            "APTA-Ov: Sistema Inteligente de Apoio à Seleção de Ovinos para Terminação em Confinamento"
       ),
       
       shiny::h2(
@@ -306,130 +318,68 @@ ui <- shiny::fluidPage(
             
             "APTA-Ov"
       ),
-      
       shiny::fluidRow(
-            
-            class = "apta-board",
-            
+            # COLUNA 1
             shiny::column(
-                  
-                  width = 3,
-                  
-                  class = "fluxo-coluna",
-                  
+                  width = 2,
                   shiny::div(
-                        class = "bloco-verde",
-                        "CAMINHAO"
-                  ),
-                  
-                  shiny::div(
-                        class = "seta",
-                        "↓"
-                  ),
-                  
-                  shiny::div(
-                        class = "bloco-verde",
-                        "RECEBIMENTO DOS ANIMAIS"
-                  ),
-                  
-                  shiny::div(
-                        class = "seta",
-                        "↓"
-                  ),
-                  
-                  shiny::div(
-                        class = "bloco-verde",
-                        shiny::tags$strong("CARACTERIZACAO"),
-                        shiny::tags$ul(
-                              shiny::tags$li("Peso"),
-                              shiny::tags$li("Sexo"),
-                              shiny::tags$li("ECC"),
-                              shiny::tags$li("Raca"),
-                              shiny::tags$li("Idade")
+                        class = "sexo-box",
+                        shiny::h4("Sexo"),
+                        shiny::checkboxGroupInput(
+                              inputId = "sexos_alvo",
+                              label = NULL,
+                              choices = c(
+                                    "Macho inteiro",
+                                    "Macho castrado",
+                                    "Femea"
+                              ),
+                              selected = c(
+                                    "Macho inteiro",
+                                    "Macho castrado",
+                                    "Femea"
+                              )
                         )
                   )
             ),
-            
+            # COLUNA 2
             shiny::column(
-                  
                   width = 6,
-                  
-                  shiny::fluidRow(
-                        
-                        shiny::column(
-                              
-                              width = 4,
-                              
-                              shiny::div(
-                                    
-                                    class = "sexo-box",
-                                    
-                                    shiny::h4("Sexo"),
-                                    
-                                    shiny::checkboxGroupInput(
-                                          
-                                          inputId = "sexos_alvo",
-                                          
-                                          label = NULL,
-                                          
-                                          choices = c(
-                                                "Macho inteiro",
-                                                "Macho castrado",
-                                                "Femea"
-                                          ),
-                                          
-                                          selected = c(
-                                                "Macho inteiro",
-                                                "Macho castrado",
-                                                "Femea"
-                                          )
-                                    )
-                              )
+                  shiny::div(
+                        class = "painel-controle",
+                        shiny::h3(
+                              "Definicao do objetivo do confinamento"
                         ),
-                        
-                        shiny::column(
-                              
-                              width = 12,
-                              
-                              shiny::div(
-                                    
-                                    class = "painel-controle",
-                                    
-                                    shiny::h3("Definicao do objetivo do confinamento"),
-                                    
-                                    shiny::div(
-                                          
-                                          class = "criterio-cabecalho",
-                                          
-                                          shiny::span(""),
-                                          shiny::span("Variavel"),
-                                          shiny::span("Meta"),
-                                          shiny::span("Valor")
-                                    ),
-                                    
-                                    shiny::tagList(
-                                          Map(
-                                                criar_linha_criterio,
-                                                names(criterios_confinamento),
-                                                criterios_confinamento
-                                          )
-                                    )
+                        shiny::div(
+                              class = "criterio-cabecalho",
+                              shiny::span(""),
+                              shiny::span("Variavel"),
+                              shiny::span("Meta"),
+                              shiny::span("Valor")
+                        ),
+                        shiny::tagList(
+                              Map(
+                                    criar_linha_criterio,
+                                    names(criterios_confinamento),
+                                    criterios_confinamento
                               )
                         )
-                  ),
+                  )
+            ),
+            # COLUNA 3
+            shiny::column(
+                  width = 4,
                   
                   shiny::div(
-                        class = "bloco-azul",
+                        class = "bloco-azul-lateral",
                         "APTA-Ov"
                   ),
                   
+                  shiny::br(),
+                  
                   shiny::actionButton(
-                        
                         inputId = "executar",
-                        
                         label = "Executar classificacao",
-                        
-                        class = "btn-primary btn-lg"
+                        class = "btn-primary"
                   ),
                   
                   shiny::br(),
@@ -438,81 +388,83 @@ ui <- shiny::fluidPage(
                   shiny::verbatimTextOutput(
                         "status_execucao"
                   )
-            ),
+            )
       ),
       
       shiny::tabsetPanel(
-            
             shiny::tabPanel(
-                  
                   title = "Classificacao",
-                  
                   shiny::br(),
-                  
                   shiny::fluidRow(
-                        
+                        # CRITÉRIOS
                         shiny::column(
-                              
-                              width = 6,
-                              
-                              shiny::h3("Criterios ativos"),
-                              
-                              shiny::tableOutput("criterios_ativos")
+                              width = 3,
+                              shiny::div(
+                                    class = "painel-controle",
+                                    shiny::h4("Critérios Ativos"),
+                                    shiny::tableOutput(
+                                          "criterios_ativos"
+                                    )
+                              )
                         ),
-                        
+                        # MAPA
                         shiny::column(
-                              
-                              width = 6,
-                              
-                              shiny::h3("Aptos e nao aptos"),
-                              
-                              shiny::tableOutput("resumo_classificacao")
+                              width = 9,
+                              shiny::plotOutput(
+                                    "mapa_principal",
+                                    height = "650px"
+                              )
+                        )
+                  ),
+                  shiny::br(),
+                  shiny::fluidRow(
+                        shiny::column(
+                              width = 12,
+                              shiny::h4(
+                                    "Resumo da Classificação"
+                              ),
+                              shiny::tableOutput(
+                                    "resumo_classificacao"
+                              )
                         )
                   )
             ),
             
             shiny::tabPanel(
-                  
                   title = "Resumo",
-                  
                   shiny::br(),
-                  
                   shiny::fluidRow(
-                        
                         shiny::column(
                               width = 6,
-                              shiny::h3("Femeas"),
-                              shiny::tableOutput("metricas_femeas")
+                              shiny::h3("Fêmeas"),
+                              shiny::tableOutput(
+                                    "metricas_femeas"
+                              )
                         ),
-                        
                         shiny::column(
                               width = 6,
                               shiny::h3("Machos"),
-                              shiny::tableOutput("metricas_machos")
+                              shiny::tableOutput(
+                                    "metricas_machos"
+                              )
                         )
                   )
             ),
             
             shiny::tabPanel(
-                  
                   title = "ROC",
-                  
                   shiny::br(),
-                  
                   shiny::fluidRow(
-                        
                         shiny::column(
                               width = 6,
                               shiny::plotOutput("roc_femeas", height = "500px")
                         ),
-                        
                         shiny::column(
                               width = 6,
                               shiny::plotOutput("roc_machos", height = "500px")
                         )
                   )
             ),
-            
             shiny::tabPanel(
                   
                   title = "Interpretabilidade",
@@ -796,6 +748,14 @@ server <- function(
                   )
             )
       }
+      
+      output$mapa_principal <- renderPlot({
+            req(resultado_pipeline())
+            req(resultado_pipeline()$machos)
+            gerar_mapa_principal(
+                  resultado_pipeline()$machos
+            )
+      })
       
       output$resumo_classificacao <- shiny::renderTable({
             
