@@ -77,50 +77,36 @@ executar_pipeline_confinamento <- function(
       # ===================================================
       # CARREGAMENTO
       # ===================================================
-      
       log_mensagem(
             "\n================================================="
       )
-      
       log_mensagem(
             "PIPELINE — CLASSIFICADOR CONFINAMENTO"
       )
-      
       log_mensagem(
             "=================================================\n"
       )
-
-      
       # ===================================================
       # PREPROCESSAMENTO
       # ===================================================
-      
       log_mensagem(
             "\n========== PREPROCESSAMENTO =========="
       )
-      
       dados_processados <- preprocessar_dados()
-      
       # ===================================================
       # SUBGRUPOS
       # ===================================================
-      
       log_mensagem(
             "\n========== SUBGRUPOS =========="
       )
-      
       subgrupos <- separar_subgrupos(
             dados_processados
       )
-      
       femeas <- subgrupos$femeas
-      
       machos <- subgrupos$machos
-      
       # ===================================================
       # DESFECHO
       # ===================================================
-      
       log_mensagem(
             "\n========== DESFECHO =========="
       )
@@ -154,8 +140,6 @@ executar_pipeline_confinamento <- function(
             usar_acabamento = usar_acabamento,
             usar_conformacao = usar_conformacao
       )
-      
-     
       # ===================================================
       # FUNÇÃO AUXILIAR
       # ===================================================
@@ -171,7 +155,6 @@ executar_pipeline_confinamento <- function(
                         "\n========================================"
                   )
             )
-
             # ==============================================
             # ELASTIC NET
             # ==============================================
@@ -191,31 +174,17 @@ executar_pipeline_confinamento <- function(
             # ==============================================
             # STABILITY SELECTION
             # ==============================================
-            log_mensagem(
-                  "\n--- Stability Selection ---"
-            )
+            log_mensagem("\n--- Stability Selection ---")
             stability <- executar_stability_selection(
-                  dados =
-                        dados_subgrupo,
+                  dados = dados_subgrupo,
                   usar_lambda_1se = FALSE,
-                  desfecho =
-                        "apto_bin",
-                  alpha =
-                        alpha_elastic,
-                  n_boot =
-                        n_boot_stability
-            )
-            variaveis_finais <-
-                  stability$variaveis_finais
+                  desfecho = "apto_bin",
+                  alpha = alpha_elastic,
+                  n_boot = n_boot_stability)
+            variaveis_finais <- stability$variaveis_finais
             if(length(variaveis_finais) == 0) {
-                  stop(
-                        paste(
-                              "Nenhuma variável robusta encontrada:",
-                              sexo_label
-                        )
-                  )
+                  stop(paste("Nenhuma variável robusta encontrada:", sexo_label))
             }
-            
             # ==============================================
             # FIRTH
             # ==============================================
@@ -228,7 +197,6 @@ executar_pipeline_confinamento <- function(
                   variaveis_finais =
                         variaveis_finais
             )
-            
             # ==============================================
             # BOOTSTRAP
             # ==============================================
@@ -243,7 +211,6 @@ executar_pipeline_confinamento <- function(
                   seed =
                         seed
             )
-            
             # ==============================================
             # ROC
             # ==============================================
@@ -270,7 +237,6 @@ executar_pipeline_confinamento <- function(
                   titulo_modelo =
                         sexo_label
             )
-            
             # ==============================================
             # TABELAS
             # ==============================================
@@ -281,227 +247,93 @@ executar_pipeline_confinamento <- function(
                   modelo_firth =
                         modelo_firth$modelo
             )
-            
             tabela_boot <- tabela_bootstrap(
-                  
                   bootstrap_resultado =
                         bootstrap
             )
-            
             tabela_roc_modelo <- tabela_roc(
-                  
                   roc_resultado =
                         roc
             )
-            
             tabela_estab <- tabela_estabilidade(
-                  
                   stability_resultado =
                         stability
             )
-            
             # ==============================================
             # PREDIÇÕES
             # ==============================================
-            
             log_mensagem(
                   "\n--- Predições ---"
             )
-            
             variavel_predicao <- variaveis_finais[1]
-            
             predicoes <- gerar_predicoes(
-                  
                   modelo_firth =
                         modelo_firth$modelo,
-                  
                   dados =
                         dados_subgrupo,
-                  
                   variavel_alvo =
                         variavel_predicao,
-                  
                   n_pontos = 100,
-                  
                   n_boot =
                         n_boot_inferencial
             )
             # ==============================================
             # PLOTS
             # ==============================================
-            
-            log_mensagem(
-                  "\n--- Plots ---"
-            )
-            
-            grafico_roc <- plot_roc(
-                  
-                  roc_resultado =
-                        roc,
-                  
-                  titulo =
-                        paste(
-                              "ROC |",
-                              sexo_label
-                        )
-            )
-            
+            log_mensagem("\n--- Plots ---")
+            grafico_roc <- plot_roc(roc_resultado = roc,
+                  titulo = paste("ROC |", sexo_label))
             grafico_forest <- plot_forest(
-                  
-                  tabela_or =
-                        tabela_or_modelo,
-                  
-                  titulo =
-                        paste(
-                              "Forest Plot |",
-                              sexo_label
-                        )
-            )
-            
+                  tabela_or = tabela_or_modelo,
+                  titulo = paste("Forest Plot |", sexo_label))
             grafico_importancia <- plot_importancia(
-                  
-                  tabela_interpretacao =
-                        interpretabilidade$tabela,
-                  
-                  titulo =
-                        paste(
-                              "Importância |",
-                              sexo_label
-                        )
-            )
-            
+                  tabela_interpretacao = interpretabilidade$tabela,
+                  titulo = paste("Importância |", sexo_label))
             grafico_calibracao <- plot_calibracao(
-                  
-                  roc_resultado =
-                        roc,
-                  
-                  titulo =
-                        paste(
-                              "Calibração |",
-                              sexo_label
-                        )
-            )
-            
+                  roc_resultado = roc,
+                  titulo = paste("Calibração |", sexo_label))
             grafico_predicao <- plot_predicao_marginal(
-                  
-                  predicoes =
-                        predicoes,
-                  
-                  variavel_alvo =
-                        variavel_predicao,
-                  
-                  titulo =
-                        paste(
-                              "Predição |",
-                              sexo_label
-                        )
-            )
-            
+                  predicoes = predicoes,
+                  variavel_alvo = variavel_predicao,
+                  titulo = paste("Predição |", sexo_label))
             painel <- painel_modelo(
-                  
-                  roc_plot =
-                        grafico_roc,
-                  
-                  forest_plot =
-                        grafico_forest,
-                  
-                  importancia_plot =
-                        grafico_importancia,
-                  
-                  calibracao_plot =
-                        grafico_calibracao
-            )
-            
+                  roc_plot = grafico_roc,
+                  forest_plot = grafico_forest,
+                  importancia_plot = grafico_importancia,
+                  calibracao_plot = grafico_calibracao)
             # ==============================================
             # RETORNO
             # ==============================================
-            
             return(
                   list(
-                        
-                        dados =
-                              dados_subgrupo,
-                        
-                        elasticnet =
-                              elastic,
-                        
-                        stability =
-                              stability,
-                        
-                        variaveis_finais =
-                              variaveis_finais,
-                        
-                        modelo_firth =
-                              modelo_firth,
-                        
-                        bootstrap =
-                              bootstrap,
-                        
-                        roc =
-                              roc,
-                        
-                        interpretabilidade =
-                              interpretabilidade,
-                        
-                        predicoes =
-                              predicoes,
-                        
+                        dados = dados_subgrupo,
+                        elasticnet = elastic,
+                        stability = stability,
+                        variaveis_finais = variaveis_finais,
+                        modelo_firth = modelo_firth,
+                        bootstrap = bootstrap,
+                        roc = roc,
+                        interpretabilidade = interpretabilidade,
+                        predicoes = predicoes,
                         tabelas =
-                              list(
-                                    
-                                    or =
-                                          tabela_or_modelo,
-                                    
-                                    bootstrap =
-                                          tabela_boot,
-                                    
-                                    roc =
-                                          tabela_roc_modelo,
-                                    
-                                    estabilidade =
-                                          tabela_estab
-                              ),
-                        
-                        plots =
-                              list(
-                                    
-                                    roc =
-                                          grafico_roc,
-                                    
-                                    forest =
-                                          grafico_forest,
-                                    
-                                    importancia =
-                                          grafico_importancia,
-                                    
-                                    calibracao =
-                                          grafico_calibracao,
-                                    
-                                    predicao =
-                                          grafico_predicao,
-                                    
-                                    painel =
-                                          painel
-                              )
-                  )
-            )
+                              list(or = tabela_or_modelo,
+                                    bootstrap = tabela_boot,
+                                    roc = tabela_roc_modelo,
+                                    estabilidade = tabela_estab),
+                        plots = list(roc = grafico_roc, 
+                                     forest = grafico_forest, 
+                                     importancia = grafico_importancia, 
+                                     calibracao = grafico_calibracao, 
+                                     predicao = grafico_predicao,
+                                     painel = painel)))
       }
       
       # ===================================================
       # FINALIZAÇÃO
       # ===================================================
-      
-      log_mensagem(
-            "\n================================================="
-      )
-      
-      log_mensagem(
-            "PIPELINE CONCLUÍDO COM SUCESSO"
-      )
-      
-      log_mensagem(
-            "=================================================\n"
-      )
+      log_mensagem("\n=================================================")
+      log_mensagem("PIPELINE CONCLUÍDO COM SUCESSO")
+      log_mensagem("=================================================\n")
       
       # ===================================================
       # RETORNO FINAL
@@ -525,25 +357,13 @@ executar_pipeline_confinamento <- function(
       
       return(
             list(
-                  dados_processados =
-                        dados_processados,
-                  subgrupos =
-                        subgrupos,
-                  femeas =
-                        resultado_femeas,
-                  machos =
-                        resultado_machos,
+                  dados_processados = dados_processados,
+                  subgrupos = subgrupos,
+                  femeas = resultado_femeas,
+                  machos = resultado_machos,
                   parametros =
-                        list(
-                              alpha_elastic =
-                                    alpha_elastic,
-                              n_boot_stability =
-                                    n_boot_stability,
-                              n_boot_inferencial =
-                                    n_boot_inferencial,
-                              seed =
-                                    seed
-                        )
-            )
-      )
+                        list(alpha_elastic = alpha_elastic,
+                              n_boot_stability = n_boot_stability,
+                              n_boot_inferencial = n_boot_inferencial,
+                              seed = seed)))
 }

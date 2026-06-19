@@ -135,90 +135,43 @@ gerar_mapa_principal <- function(resultado){
             ) |>
             dplyr::mutate(
                   classe =
-                        dplyr::case_when(
-                              faixa == 1 ~
-                                    "Não recomendado",
-                              faixa == 2 ~
-                                    "Pouco recomendado",
-                              faixa == 3 ~
-                                    "Apto potencial",
-                              TRUE ~
-                                    "Apto prioritário"
-                        )
-            )
+                        dplyr::case_when(faixa == 1 ~ "Não recomendado",
+                              faixa == 2 ~ "Pouco recomendado",
+                              faixa == 3 ~ "Apto potencial",
+                              TRUE ~ "Apto prioritário"))
       
       # =====================================================
       # MAPA
       # =====================================================
-      ggplot2::ggplot(
-            grid,
-            ggplot2::aes(
-                  x = peso_inicial,
-                  y = ecc_inicial,
-                  fill = classe
-            )
-      ) +
-            ggplot2::geom_tile() +
-            ggplot2::geom_point(
-                  data = dados,
-                  ggplot2::aes(
-                        x = peso_inicial,
-                        y = ecc_inicial,
-                        shape = factor(apto_bin)
-                  ),
-                  inherit.aes = FALSE,
-                  color = "black",
-                  size = 2.5,
-                  stroke = 0.8
-            ) +
-            ggplot2::scale_fill_manual(
-                  values = c(
-                        "Não recomendado" =
-                              "#C0392B",
-                        "Pouco recomendado" =
-                              "#F39C12",
-                        "Apto potencial" =
-                              "#7DCEA0",
-                        "Apto prioritário" =
-                              "#009639"
-                  )
-            ) +
-            ggplot2::scale_shape_manual(
-                  values = c(
-                        1,
-                        16
-                  ),
-                  labels = c(
-                        "Não apto",
-                        "Apto"
-                  )
-            ) +
+      ggplot2::ggplot(grid, ggplot2::aes(x = peso_inicial, y = ecc_inicial, fill = classe)) +
+            ggplot2::geom_tile(alpha = 0.82) +
+            ggplot2::geom_point(data = dados, 
+                                ggplot2::aes(x = peso_inicial, y = ecc_inicial, shape = factor(apto_bin)),
+                  inherit.aes = FALSE, color = "black", size = 2.5, stroke = 0.8) +
+            # Grades desenhadas SOBRE os tiles
+            ggplot2::geom_vline(xintercept = seq(19, 34, by = 1),
+                  color = "gray30", linewidth = 0.3, linetype = "solid") +
+            ggplot2::geom_hline(yintercept = seq(1, 5, by = 0.5), color = "gray30", linewidth = 0.3, linetype = "solid") +
+            ggplot2::scale_fill_manual(values = c(
+                        "Não recomendado"  = "#C0392B",
+                        "Pouco recomendado" = "#F39C12",
+                        "Apto potencial"   = "#7DCEA0",
+                        "Apto prioritário" = "#009639")) +
+            ggplot2::scale_shape_manual(values = c(1, 16),labels = c("Não apto", "Apto")) +
+            ggplot2::scale_x_continuous(limits = c(19, 34), breaks = seq(19, 34, by = 1)) +
+            ggplot2::scale_y_continuous(limits = c(1, 5),  breaks = seq(1, 5,  by = 0.5)) +
             ggplot2::labs(
-                  title =
-                        "Mapa de Seleção de Animais",
-                  subtitle =
-                        "Peso Inicial × ECC Inicial",
-                  x =
-                        "Peso inicial (kg)",
-                  y =
-                        "ECC inicial",
-                  fill =
-                        "Classificação",
-                  shape =
-                        "Observação"
-            ) +
+                  title    = "Mapa de Seleção de Animais",
+                  subtitle = "Peso Inicial × ECC Inicial",
+                  x        = "Peso inicial (kg)",
+                  y        = "ECC inicial",
+                  fill     = "Classificação",
+                  shape    = "Observação") +
+            # theme_classic() PRIMEIRO, customizações DEPOIS
             ggplot2::theme_classic() +
             ggplot2::theme(
-                  legend.position =
-                        "bottom",
-                  plot.title =
-                        ggplot2::element_text(
-                              face = "bold",
-                              size = 16
-                        ),
-                  plot.subtitle =
-                        ggplot2::element_text(
-                              size = 11
-                        )
-            )
+                  legend.position  = "bottom",
+                  plot.title       = ggplot2::element_text(face = "bold", size = 16),
+                  plot.subtitle    = ggplot2::element_text(size = 11),
+                  axis.line        = ggplot2::element_line(color = "black", linewidth = 0.8))
 }

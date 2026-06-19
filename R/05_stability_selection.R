@@ -38,17 +38,13 @@ executar_stability_selection <- function(
       # VERIFICAÇÃO DO DATAFRAME
       # ===================================================
       if(!is.data.frame(dados)) {
-            stop(
-                  "O objeto informado não é um data.frame."
-            )
+            stop("O objeto informado não é um data.frame.")
       }
       # ===================================================
       # VERIFICAÇÃO DO DESFECHO
       # ===================================================
       if(!desfecho %in% names(dados)) {
-            stop(
-                  "Variável desfecho não encontrada."
-            )
+            stop("Variável desfecho não encontrada.")
       }
       # ===================================================
       # VARIÁVEIS PREDITORAS
@@ -57,7 +53,6 @@ executar_stability_selection <- function(
       # do confinamento.
       # ===================================================
       variaveis_modelo <- c(
-            
             "peso_inicial",
             "ecc_inicial",
             "idade_fct",
@@ -70,30 +65,21 @@ executar_stability_selection <- function(
       # ===================================================
       # Variáveis existentes
       # ===================================================
-      vars_existentes <- c(
-            desfecho,
-            variaveis_modelo
-      )
-      vars_existentes <- vars_existentes[
-            vars_existentes %in% names(dados)
-      ]
+      vars_existentes <- c(desfecho, variaveis_modelo)
+      vars_existentes <- vars_existentes[vars_existentes %in% names(dados)]
       # ===================================================
       # Construção da base
       # ===================================================
       dados_modelo <- dados |>
             dplyr::select(
                   dplyr::all_of(
-                        vars_existentes
-                  )
-            ) |>
+                        vars_existentes)) |>
             tidyr::drop_na()
       # ===================================================
       # Verificação pós-NA
       # ===================================================
       if(nrow(dados_modelo) < 10) {
-            stop(
-                  "Número insuficiente de observações."
-            )
+            stop("Número insuficiente de observações.")
       }
       # ===================================================
       # Variável resposta
@@ -103,9 +89,7 @@ executar_stability_selection <- function(
       # Verificação binária
       # ===================================================
       if(length(unique(y)) != 2) {
-            stop(
-                  "O desfecho deve possuir duas classes."
-            )
+            stop("O desfecho deve possuir duas classes.")
       }
       # ===================================================
       # Menor frequência de classe
@@ -115,38 +99,21 @@ executar_stability_selection <- function(
       # Verificação crítica
       # ===================================================
       if(n_min_classe <= 2) {
-            stop(
-                  paste(
-                        "Número insuficiente de observações",
-                        "por classe."
-                  )
-            )
+            stop(paste("Número insuficiente de observações","por classe."))
       }
       # ===================================================
       # Ajuste automático dos folds
       # ===================================================
       if(n_min_classe < nfolds) {
-            nfolds <- max(
-                  2,
-                  n_min_classe
-            )
+            nfolds <- max(2, n_min_classe)
             warning(
-                  paste(
-                        "nfolds reajustado para",
-                        nfolds
-                  )
-            )
+                  paste("nfolds reajustado para", nfolds))
       }
       # ===================================================
       # Base preditora
       # ===================================================
       dados_x <- dados_modelo |>
-            
-            dplyr::select(
-                  -dplyr::all_of(
-                        desfecho
-                  )
-            )
+            dplyr::select(-dplyr::all_of(desfecho))
       # ===================================================
       # Remover variáveis sem variabilidade
       # ===================================================
@@ -165,9 +132,7 @@ executar_stability_selection <- function(
       # Verificação final
       # ===================================================
       if(ncol(dados_x) == 0) {
-            stop(
-                  "Nenhuma variável válida restante."
-            )
+            stop("Nenhuma variável válida restante.")
       }
       # ===================================================
       # MATRIZ PREDITORA
@@ -187,11 +152,7 @@ executar_stability_selection <- function(
       # ===================================================
       # MATRIZ DE SELEÇÃO
       # ===================================================
-      selecoes <- matrix(
-            0,
-            nrow = n_boot,
-            ncol = ncol(x)
-      )
+      selecoes <- matrix(0, nrow = n_boot, ncol = ncol(x))
       colnames(selecoes) <- colnames(x)
       # ===================================================
       # CONTADORES
@@ -201,27 +162,10 @@ executar_stability_selection <- function(
       # ===================================================
       # MENSAGEM INICIAL
       # ===================================================
-      message(
-            "\n========== STABILITY SELECTION =========="
-      )
-      message(
-            paste(
-                  "Observações:",
-                  nrow(x)
-            )
-      )
-      message(
-            paste(
-                  "Preditores:",
-                  ncol(x)
-            )
-      )
-      message(
-            paste(
-                  "Bootstrap:",
-                  n_boot
-            )
-      )
+      message("\n========== STABILITY SELECTION ==========")
+      message(paste("Observações:", nrow(x)))
+      message(paste("Preditores:", ncol(x)))
+      message(paste("Bootstrap:", n_boot))
       # ===================================================
       # LOOP PRINCIPAL
       # ===================================================
@@ -316,44 +260,27 @@ executar_stability_selection <- function(
       # VERIFICAÇÃO FINAL
       # ===================================================
       if(modelos_validos == 0) {
-            stop(
-                  "Nenhum modelo bootstrap válido."
-            )
+            stop("Nenhum modelo bootstrap válido.")
       }
       # ===================================================
       # FREQUÊNCIA DE SELEÇÃO
       # ===================================================
       freq_selecao <- tibble::tibble(
             Variavel = colnames(selecoes),
-            Frequencia =
-                  colMeans(selecoes),
-            Frequencia_percentual =
-                  round(
-                        Frequencia * 100,
-                        1
-                  )
-      ) |>
-            dplyr::arrange(
-                  dplyr::desc(
-                        Frequencia
-                  )
-            )
+            Frequencia = colMeans(selecoes),
+            Frequencia_percentual = round(Frequencia * 100, 1)) |>
+            dplyr::arrange(dplyr::desc(Frequencia))
       # ===================================================
       # CLASSIFICAÇÃO DA ESTABILIDADE
       # ===================================================
       freq_selecao <- freq_selecao |>
             dplyr::mutate(
                   Estabilidade = dplyr::case_when(
-                        Frequencia >= 0.95 ~
-                              "Muito alta",
-                        Frequencia >= 0.80 ~
-                              "Alta",
-                        Frequencia >= 0.65 ~
-                              "Moderada",
-                        Frequencia >= 0.50 ~
-                              "Baixa",
-                        TRUE ~
-                              "Muito baixa"
+                        Frequencia >= 0.95 ~ "Muito alta",
+                        Frequencia >= 0.80 ~ "Alta",
+                        Frequencia >= 0.65 ~ "Moderada",
+                        Frequencia >= 0.50 ~ "Baixa",
+                        TRUE ~ "Muito baixa"
                   )
             )
       # ===================================================
@@ -370,59 +297,24 @@ executar_stability_selection <- function(
       # ===================================================
       # RESUMO FINAL
       # ===================================================
-      message(
-            "\n========== RESULTADO FINAL =========="
-      )
-      message(
-            paste(
-                  "Modelos válidos:",
-                  modelos_validos
-            )
-      )
-      message(
-            paste(
-                  "Modelos inválidos:",
-                  modelos_invalidos
-            )
-      )
-      message(
-            paste(
-                  "Variáveis robustas:",
-                  length(
-                        variaveis_finais
-                  )
-            )
-      )
-      print(
-            variaveis_finais
-      )
+      message("\n========== RESULTADO FINAL ==========")
+      message(paste("Modelos válidos:", modelos_validos))
+      message(paste("Modelos inválidos:", modelos_invalidos))
+      message(paste("Variáveis robustas:", length(variaveis_finais)))
+      print(variaveis_finais)
       # ===================================================
       # RETORNO
       # ===================================================
-      return(
-            list(
-                  tabela_final =
-                        freq_selecao,
-                  variaveis_finais =
-                        variaveis_finais,
-                  selecoes =
-                        selecoes,
-                  modelos_validos =
-                        modelos_validos,
-                  modelos_invalidos =
-                        modelos_invalidos,
-                  x =
-                        x,
-                  y =
-                        y,
-                  alpha =
-                        alpha,
-                  nfolds =
-                        nfolds,
-                  n_boot =
-                        n_boot,
-                  limiar_frequencia =
-                        limiar_frequencia
-            )
-      )
+      return(list(
+                  tabela_final = freq_selecao,
+                  variaveis_finais = variaveis_finais,
+                  selecoes = selecoes,
+                  modelos_validos = modelos_validos,
+                  modelos_invalidos = modelos_invalidos,
+                  x = x,
+                  y = y,
+                  alpha = alpha,
+                  nfolds = nfolds,
+                  n_boot = n_boot,
+                  limiar_frequencia = limiar_frequencia))
 }
